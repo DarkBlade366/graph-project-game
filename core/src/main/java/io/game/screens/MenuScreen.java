@@ -23,7 +23,11 @@ public class MenuScreen implements Screen {
 	private Sound buttonSound;
 	private Image background;
 
-	// Utils
+	/*private Texture[] bgFrames;
+	private float bgTimer = 0;
+	private int currentFrame = 0;
+	private float frameDuration = 0.25f;*/
+
 	private Texture getTexture(String name) {
 		return Resources.getTexture(name, BASE_PATH);
 	}
@@ -42,21 +46,29 @@ public class MenuScreen implements Screen {
 	}
 
 	private void loadAssets() {
-		//
 		Button.loadDrawable("play", BASE_PATH);
 		Button.loadDrawable("options", BASE_PATH);
 		Button.loadDrawable("loadgame", BASE_PATH);
 		Button.loadDrawable("exit", BASE_PATH);
 
-		//
-		Resources.loadTexture("fondo_menu", BASE_PATH);
+		Resources.loadTexture("1", BASE_PATH);
+		/*Resources.loadTexture("2", BASE_PATH);
+		Resources.loadTexture("3", BASE_PATH);*/
 		Resources.loadTexture("title", BASE_PATH);
 
 		Resources.finish();
 	}
 
 	private void createBackground() {
-		background = new Image(getTexture("fondo_menu"));
+		/*bgFrames = new Texture[] {
+			getTexture("1"),
+			getTexture("2"),
+			getTexture("3")
+		};
+		
+		background = new Image(bgFrames[0]);*/
+		
+		background = new Image(getTexture("1"));
 		background.setSize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		stage.addActor(background);
 	}
@@ -70,23 +82,34 @@ public class MenuScreen implements Screen {
 		table.center();
 		stage.addActor(table);
 
-		//
-		// title
-		//
+		/**
+		 * Title
+		*/
 		Texture titleTex = getTexture("title");
 		Image title = new Image(titleTex);
 		float targetWidth = screenW * 0.6f;
 		float targetHeight = targetWidth * titleTex.getHeight() / titleTex.getWidth();
 		table.add(title).width(targetWidth).height(targetHeight).row();
 
-		//
-		// buttons
-		//
+		/**
+		 * Buttons
+		*/
 		float buttonWidth = screenW * 0.28f;
 		float buttonHeight = screenH * 0.17f;
 		table.add(new Button("play", BASE_PATH, () -> {
 			System.out.println("PLAY");
-			game.gameScreen.restart(); // Reiniciar el juego
+			
+			// Si necesitamos resetear, crear nuevo juego
+			if (game.needGameReset) {
+				game.gameScreen = new GameScreen(game);
+				game.needGameReset = false;
+			}
+			
+			// Detener música del menú
+			if (menuMusic != null && menuMusic.isPlaying()) {
+				menuMusic.stop();
+			}
+			
 			game.setScreen(game.gameScreen);	
 		}, buttonSound)).width(buttonWidth).height(buttonHeight).row();
 
@@ -112,9 +135,18 @@ public class MenuScreen implements Screen {
 		buttonSound = Gdx.audio.newSound(Gdx.files.internal("audio/sound/Sbottom.mp3"));
 	}
 
-	// SCREEN METHODS
 	@Override
 	public void render(float delta) {
+	/* bgTimer += delta;
+
+    if (bgTimer >= frameDuration) {
+        bgTimer = 0;
+        currentFrame = (currentFrame + 1) % bgFrames.length; // ciclo infinito
+
+        background.setDrawable(
+            new Image(bgFrames[currentFrame]).getDrawable()
+        );
+    } */
 		stage.act(delta);
 		stage.draw();
 	}
@@ -131,6 +163,10 @@ public class MenuScreen implements Screen {
 	@Override
 	public void show() {
 		Gdx.input.setInputProcessor(stage);
+		// Asegurar que la música del menú esté sonando
+		if (menuMusic != null && !menuMusic.isPlaying()) {
+			menuMusic.play();
+		}
 	}
 
 	@Override
@@ -149,6 +185,5 @@ public class MenuScreen implements Screen {
 
 	@Override
 	public void hide() {
-		if (menuMusic != null) menuMusic.stop();
 	}
 }
