@@ -18,7 +18,7 @@ public class Player extends Character {
 	public static void loadTextures() {
 		Resources.loadAnimation("idle", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.LOOP);
 		Resources.loadAnimation("walk", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.LOOP);
-		Resources.loadAnimation("hurt", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.LOOP);
+		Resources.loadAnimation("hurt", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.NORMAL);
 		Resources.loadAnimation("death", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.NORMAL);
 		Resources.loadAnimation("attack01", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.NORMAL);
 		Resources.loadAnimation("attack02", BASE_PATH, 100, 100, 0.1f, 35, 35, PlayMode.NORMAL);
@@ -73,8 +73,17 @@ public class Player extends Character {
 			}
 		}
 
-		// Solo cambiar animación si no está atacando
-		if (!combat.isAttacking()) {
+		// Solo cambiar animación si no está atacando ni herido
+		if (!combat.isAttacking() && !this.animation.equals(Resources.getAnimation("hurt", BASE_PATH))) {
+			if (!movement.isZero()) {
+				play("walk", BASE_PATH);
+			} else {
+				play("idle", BASE_PATH);
+			}
+		}
+		
+		// Si la animación de hurt terminó, volver a idle/walk
+		if (this.animation.equals(Resources.getAnimation("hurt", BASE_PATH)) && isAnimationFinished()) {
 			if (!movement.isZero()) {
 				play("walk", BASE_PATH);
 			} else {
